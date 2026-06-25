@@ -2,70 +2,56 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/network/api_error.dart';
 import '../../domain/entities/user.dart';
+import '../../domain/failures/user_failure.dart';
 import '../../domain/repositories/user_repository.dart';
+import '../../domain/user_filter.dart';
 import 'search_state.dart';
 
 class SearchCubit extends Cubit<SearchState> {
   final UserRepository _repository;
   Timer? _debounce;
-  List<User>? _allUsers;
+  List<User>? _users;
 
-  SearchCubit(this._repository) : super(SearchInitialLoading()) {
-    loadInitialUsers();
+  SearchCubit(this._repository) : super(SearchLoading()) {
+    loadUsers();
   }
 
-  Future<void> loadInitialUsers() async {
-    emit(SearchInitialLoading());
+  Future<void> loadUsers() async {
+    emit(SearchLoading());
 
     try {
-      final users = await _repository.searchUsers('');
-      _allUsers = users;
-      emit(SearchInitial(users));
-    } on ApiError catch (e) {
-      emit(SearchFailure(e.message));
+      _users = await _repository.getUsers();
+      emit(SearchLoaded(_users!));
+    } on UserFailure catch (failure) {
+      emit(SearchFailure(failure.message));
     }
   }
 
   void onQueryChanged(String query) {
     _debounce?.cancel();
 
+    if (_users == null) return;
+
     if (query.isEmpty) {
-      if (_allUsers != null) {
-        emit(SearchInitial(_allUsers!));
-      } else {
-        loadInitialUsers();
-      }
+      emit(SearchLoaded(_users!));
       return;
     }
 
     _debounce = Timer(const Duration(milliseconds: 300), () {
-      _search(query);
+      final filtered = filterUsers(_users!, query);
+      if (filtered.isEmpty) {
+        emit(SearchEmpty());
+      } else {
+        emit(SearchLoaded(filtered));
+      }
     });
   }
 
   void onClear() {
     _debounce?.cancel();
-    if (_allUsers != null) {
-      emit(SearchInitial(_allUsers!));
-    } else {
-      loadInitialUsers();
-    }
-  }
-
-  Future<void> _search(String query) async {
-    emit(SearchLoading());
-
-    try {
-      final users = await _repository.searchUsers(query);
-      if (users.isEmpty) {
-        emit(SearchEmpty());
-      } else {
-        emit(SearchSuccess(users));
-      }
-    } on ApiError catch (e) {
-      emit(SearchFailure(e.message));
+    if (_users != null) {
+      emit(SearchLoaded(_users!));
     }
   }
 

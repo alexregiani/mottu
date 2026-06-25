@@ -1,5 +1,5 @@
 import '../entities/user.dart';
 
 abstract class UserRepository {
-  Future<List<User>> searchUsers(String query);
+  Future<List<User>> getUsers({bool forceRefresh = false});
 }

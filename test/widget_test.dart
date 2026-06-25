@@ -9,7 +9,7 @@ import 'package:mottu_alex_regiani/features/users/presentation/cubit/search_cubi
 
 class _FakeUserRepository implements UserRepository {
   @override
-  Future<List<User>> searchUsers(String query) async {
+  Future<List<User>> getUsers({bool forceRefresh = false}) async {
     return [
       const User(
         id: 1,

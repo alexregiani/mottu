@@ -68,9 +68,8 @@ class _SearchBody extends StatelessWidget {
     return BlocBuilder<SearchCubit, SearchState>(
       builder: (context, state) {
         return switch (state) {
-          SearchInitialLoading() => const DSLoading(),
-          SearchInitial(:final users) => _UserList(users: users),
           SearchLoading() => const DSLoading(),
+          SearchLoaded(:final users) => _UserList(users: users),
           SearchEmpty() => const DSEmptyState(
               icon: Icons.person_off,
               message: 'Nenhum resultado encontrado',
@@ -80,7 +79,6 @@ class _SearchBody extends StatelessWidget {
               message: message,
               iconColor: AppColors.danger,
             ),
-          SearchSuccess(:final users) => _UserList(users: users),
         };
       },
     );

@@ -1,15 +1,26 @@
-import '../../domain/entities/user.dart';
-import '../../../../core/network/dio_client.dart';
+import 'package:dio/dio.dart';
+
+import '../../../../core/network/api_error.dart';
+import '../../../../core/network/dio_request.dart';
+import '../constants/users_api.dart';
+import '../models/user_model.dart';
 
 class UserRemoteDataSource {
-  final DioClient _client;
+  final Dio _dio;
 
-  UserRemoteDataSource(this._client);
+  UserRemoteDataSource(this._dio);
 
-  Future<List<User>> fetchUsers() async {
-    final data = await _client.get('/users') as List<dynamic>;
-    return data
-        .map((e) => User.fromJson(e as Map<String, dynamic>))
-        .toList();
+  Future<List<UserModel>> fetchUsers() async {
+    final data = await executeDioRequest(
+      () => _dio.get<dynamic>(UsersApi.usersPath),
+    );
+
+    try {
+      return (data as List<dynamic>)
+          .map((e) => UserModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on TypeError {
+      throw const ParseError();
+    }
   }
 }

@@ -2,20 +2,12 @@ import '../../domain/entities/user.dart';
 
 sealed class SearchState {}
 
-class SearchInitialLoading extends SearchState {}
-
-class SearchInitial extends SearchState {
-  final List<User> users;
-
-  SearchInitial(this.users);
-}
-
 class SearchLoading extends SearchState {}
 
-class SearchSuccess extends SearchState {
+class SearchLoaded extends SearchState {
   final List<User> users;
 
-  SearchSuccess(this.users);
+  SearchLoaded(this.users);
 }
 
 class SearchEmpty extends SearchState {}
