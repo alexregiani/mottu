@@ -1,30 +1,55 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:mottu_alex_regiani/main.dart';
+import 'package:mottu_alex_regiani/app.dart';
+import 'package:mottu_alex_regiani/features/users/domain/entities/user.dart';
+import 'package:mottu_alex_regiani/features/users/domain/repositories/user_repository.dart';
+import 'package:mottu_alex_regiani/features/users/presentation/cubit/search_cubit.dart';
+
+class _FakeUserRepository implements UserRepository {
+  @override
+  Future<List<User>> searchUsers(String query) async {
+    return [
+      const User(
+        id: 1,
+        name: 'Leanne Graham',
+        username: 'Bret',
+        email: 'Sincere@april.biz',
+        address: Address(
+          street: 'Kulas Light',
+          suite: 'Apt. 556',
+          city: 'Gwenborough',
+          zipcode: '92998-3874',
+          geo: Geo(lat: '-37.3159', lng: '81.1496'),
+        ),
+        phone: '1-770-736-8031 x56442',
+        website: 'hildegard.org',
+        company: Company(
+          name: 'Romaguera-Crona',
+          catchPhrase: 'Multi-layered client-server neural-net',
+          bs: 'harness real-time e-markets',
+        ),
+      ),
+    ];
+  }
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Search page shows all users on load', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      BlocProvider(
+        create: (_) => SearchCubit(_FakeUserRepository()),
+        child: const MyApp(),
+      ),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('Usuários'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Leanne Graham'), findsOneWidget);
+    expect(find.text('Sincere@april.biz'), findsOneWidget);
   });
 }
